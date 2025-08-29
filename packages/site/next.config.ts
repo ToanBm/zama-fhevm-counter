@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   headers() {
-    // Required by FHEVM 
     return Promise.resolve([
       {
         source: '/',
@@ -18,7 +17,8 @@ const nextConfig: NextConfig = {
         ],
       },
     ]);
-  }
+  },
 };
 
 export default nextConfig;
+

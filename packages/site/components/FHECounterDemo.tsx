@@ -18,8 +18,6 @@ export const FHECounterDemo = () => {
     provider,
     chainId,
     accounts,
-    isConnected,
-    connect,
     ethersSigner,
     ethersReadonlyProvider,
     sameChain,
@@ -70,148 +68,145 @@ export const FHECounterDemo = () => {
   // - 1x "Decrement" button (to decrement the FHECounter)
   //////////////////////////////////////////////////////////////////////////////
 
-  const buttonClass =
-    "inline-flex items-center justify-center rounded-xl bg-black px-4 py-4 font-semibold text-white shadow-sm " +
-    "transition-colors duration-200 hover:bg-blue-700 active:bg-blue-800 " +
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 " +
-    "disabled:opacity-50 disabled:pointer-events-none";
+  const buttonClass = "fhe-action-button";
 
-  const titleClass = "font-semibold text-black text-lg mt-4";
+  const titleClass = "fhe-section-title";
 
-  if (!isConnected) {
-    return (
-      <div className="mx-auto">
-        <button
-          className={buttonClass}
-          disabled={isConnected}
-          onClick={connect}
-        >
-          <span className="text-4xl p-6">Connect to MetaMask</span>
-        </button>
-      </div>
-    );
-  }
+
 
   if (fheCounter.isDeployed === false) {
     return errorNotDeployed(chainId);
   }
 
   return (
-    <div className="grid w-full gap-4">
-      <div className="col-span-full mx-20 bg-black text-white">
-        <p className="font-semibold  text-3xl m-5">
-          FHEVM React Minimal Template -{" "}
-          <span className="font-mono font-normal text-gray-400">
-            FHECounter.sol
-          </span>
-        </p>
-      </div>
-      <div className="col-span-full mx-20 mt-4 px-5 pb-4 rounded-lg bg-white border-2 border-black">
-        <p className={titleClass}>Chain Infos</p>
-        {printProperty("ChainId", chainId)}
-        {printProperty(
-          "Metamask accounts",
-          accounts
-            ? accounts.length === 0
-              ? "No accounts"
-              : `{ length: ${accounts.length}, [${accounts[0]}, ...] }`
-            : "undefined"
-        )}
-        {printProperty(
-          "Signer",
-          ethersSigner ? ethersSigner.address : "No signer"
-        )}
+    <div className="main">
+      <div className="counter-container">
+        {/* Header Section */}
+        
 
-        <p className={titleClass}>Contract</p>
-        {printProperty("FHECounter", fheCounter.contractAddress)}
-        {printProperty("isDeployed", fheCounter.isDeployed)}
-      </div>
-      <div className="col-span-full mx-20">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-white border-2 border-black pb-4 px-4">
-            <p className={titleClass}>FHEVM instance</p>
-            {printProperty(
-              "Fhevm Instance",
-              fhevmInstance ? "OK" : "undefined"
-            )}
-            {printProperty("Fhevm Status", fhevmStatus)}
-            {printProperty("Fhevm Error", fhevmError ?? "No Error")}
+        {/* Main Section */}
+        <div className="counter-main">
+          {/* FHEVM & Status */}
+          <div className="status-grid">
+            <div className="info-card">
+              <h2 className={titleClass}>FHEVM Instance</h2>
+              {printProperty(
+                "Instance",
+                fhevmInstance ? "Active" : "Inactive",
+                fhevmInstance ? "success" : "error"
+              )}
+              {printProperty("State", fhevmStatus, fhevmStatus === "ready" ? "success" : "error")}
+              {printProperty("Error Log", fhevmError ?? "None", !fhevmError ? "success" : "error")}
+            </div>
+            
+            {/* Network & Contract */}
+            <div className="info-card">
+              <h2 className={titleClass}>Network & Contract</h2>
+              {printProperty("Network", getNetworkName(chainId), "success")}
+              {printProperty(
+                "Wallet",
+                accounts
+                  ? accounts.length === 0
+                    ? "No accounts"
+                    : `${accounts.length} account${accounts.length > 1 ? 's' : ''}`
+                  : "undefined",
+                accounts && accounts.length > 0 ? "success" : "error"
+              )}
+              {printProperty(
+                "Address",
+                ethersSigner ? ethersSigner.address : "No signer",
+                ethersSigner ? "success" : "error"
+              )}
+              {printProperty("Contract", fheCounter.contractAddress, "success")}
+              {printProperty("Status", fheCounter.isDeployed ? "Deployed" : "Not Deployed", fheCounter.isDeployed ? "success" : "error")}
+            </div>
           </div>
-          <div className="rounded-lg bg-white border-2 border-black pb-4 px-4">
-            <p className={titleClass}>Status</p>
-            {printProperty("isRefreshing", fheCounter.isRefreshing)}
-            {printProperty("isDecrypting", fheCounter.isDecrypting)}
-            {printProperty("isIncOrDec", fheCounter.isIncOrDec)}
-            {printProperty("canGetCount", fheCounter.canGetCount)}
-            {printProperty("canDecrypt", fheCounter.canDecrypt)}
-            {printProperty("canIncOrDec", fheCounter.canIncOrDec)}
+
+          {/* Count Handle & Message */}
+          <div className="info-card">
+            <h2 className={titleClass}>Count Handle & Status</h2>
+            
+            {/* Count Handle Info */}
+            {printProperty("Encrypted Counter", fheCounter.handle)}
+            {printProperty("Current Value", fheCounter.isDecrypted ? fheCounter.clear : "Not decrypted")}
+          </div>
+
+          {/* Action Buttons - 2x3 Grid Layout */}
+          <div className="button-grid-2x3">
+            <button
+              className={buttonClass}
+              disabled={!fheCounter.canIncOrDec || fheCounter.isIncOrDec}
+              onClick={() => fheCounter.incOrDec(+1)}
+            >
+              {fheCounter.canIncOrDec && !fheCounter.isIncOrDec
+                ? "+1"
+                : fheCounter.isIncOrDec
+                  ? "Running..."
+                  : "Cannot increment"}
+            </button>
+            <button
+              className={buttonClass}
+              disabled={!fheCounter.canIncOrDec || fheCounter.isIncOrDec}
+              onClick={() => fheCounter.incOrDec(-1)}
+            >
+              {fheCounter.canIncOrDec && !fheCounter.isIncOrDec
+                ? "-1"
+                : fheCounter.isIncOrDec
+                  ? "Running..."
+                  : "Cannot decrement"}
+            </button>
+            <button
+              className={buttonClass}
+              disabled={!fheCounter.canDecrypt}
+              onClick={fheCounter.decryptCountHandle}
+            >
+              {fheCounter.canDecrypt
+                ? "Decrypt"
+                : fheCounter.isDecrypted
+                  ? `Decrypted: ${fheCounter.clear}`
+                  : fheCounter.isDecrypting
+                    ? "Decrypting..."
+                    : "Nothing to decrypt"}
+            </button>
+            <button
+              className={buttonClass}
+              disabled={!fheCounter.canIncOrDec || fheCounter.isIncOrDec}
+              onClick={() => fheCounter.incOrDec(+10)}
+            >
+              {fheCounter.canIncOrDec && !fheCounter.isIncOrDec
+                ? "+10"
+                : fheCounter.isIncOrDec
+                  ? "Running..."
+                  : "Cannot increment"}
+            </button>
+            <button
+              className={buttonClass}
+              disabled={!fheCounter.canIncOrDec || fheCounter.isIncOrDec}
+              onClick={() => fheCounter.incOrDec(-10)}
+            >
+              {fheCounter.canIncOrDec && !fheCounter.isIncOrDec
+                ? "-10"
+                : fheCounter.isIncOrDec
+                  ? "Running..."
+                  : "Cannot decrement"}
+            </button>
+            <button
+              className={buttonClass}
+              disabled={!fheCounter.canGetCount}
+              onClick={fheCounter.refreshCountHandle}
+            >
+              {fheCounter.canGetCount
+                ? "Refresh"
+                : "FHECounter is not available"}
+            </button>
           </div>
         </div>
-      </div>
-      <div className="col-span-full mx-20 px-4 pb-4 rounded-lg bg-white border-2 border-black">
-        <p className={titleClass}>Count Handle</p>
-        {printProperty("countHandle", fheCounter.handle)}
-        {printProperty(
-          "clear countHandle",
-          fheCounter.isDecrypted ? fheCounter.clear : "Not decrypted"
-        )}
-      </div>
-      <div className="grid grid-cols-2 mx-20 gap-4">
-        <button
-          className={buttonClass}
-          disabled={!fheCounter.canDecrypt}
-          onClick={fheCounter.decryptCountHandle}
-        >
-          {fheCounter.canDecrypt
-            ? "Decrypt"
-            : fheCounter.isDecrypted
-              ? `Decrypted clear counter value is ${fheCounter.clear}`
-              : fheCounter.isDecrypting
-                ? "Decrypting..."
-                : "Nothing to decrypt"}
-        </button>
-        <button
-          className={buttonClass}
-          disabled={!fheCounter.canGetCount}
-          onClick={fheCounter.refreshCountHandle}
-        >
-          {fheCounter.canGetCount
-            ? "Refresh Count Handle"
-            : "FHECounter is not available"}
-        </button>
-      </div>
-      <div className="grid grid-cols-2 mx-20 gap-4">
-        <button
-          className={buttonClass}
-          disabled={!fheCounter.canIncOrDec}
-          onClick={() => fheCounter.incOrDec(+1)}
-        >
-          {fheCounter.canIncOrDec
-            ? "Increment Counter by 1"
-            : fheCounter.isIncOrDec
-              ? "Running..."
-              : "Cannot increment"}
-        </button>
-        <button
-          className={buttonClass}
-          disabled={!fheCounter.canIncOrDec}
-          onClick={() => fheCounter.incOrDec(-1)}
-        >
-          {fheCounter.canIncOrDec
-            ? "Decrement Counter by 1"
-            : fheCounter.isIncOrDec
-              ? "Running..."
-              : "cannot decrement"}
-        </button>
-      </div>
-      <div className="col-span-full mx-20 p-4 rounded-lg bg-white border-2 border-black">
-        {printProperty("Message", fheCounter.message)}
       </div>
     </div>
   );
 };
 
-function printProperty(name: string, value: unknown) {
+function printProperty(name: string, value: unknown, status?: "success" | "error") {
   let displayValue: string;
 
   if (typeof value === "boolean") {
@@ -229,28 +224,45 @@ function printProperty(name: string, value: unknown) {
   } else {
     displayValue = JSON.stringify(value);
   }
+
+  const valueClass = status ? `fhe-property-value ${status}` : "fhe-property-value";
+  
   return (
-    <p className="text-black">
+    <p className="fhe-property-label">
       {name}:{" "}
-      <span className="font-mono font-semibold text-black">{displayValue}</span>
+      <span className={valueClass}>{displayValue}</span>
     </p>
   );
+}
+
+function getNetworkName(chainId: number | undefined): string {
+  if (!chainId) return "Unknown";
+  
+  switch (chainId) {
+    case 1: return "Ethereum Mainnet";
+    case 11155111: return "Sepolia";
+    case 137: return "Polygon";
+    case 80001: return "Mumbai";
+    case 31337: return "Hardhat";
+    case 1337: return "Local";
+    default: return `Chain ${chainId}`;
+  }
 }
 
 function printBooleanProperty(name: string, value: boolean) {
   if (value) {
     return (
-      <p className="text-black">
+      <p className="fhe-property-label">
         {name}:{" "}
-        <span className="font-mono font-semibold text-green-500">true</span>
+        <span className="fhe-property-true">true</span>
       </p>
     );
   }
 
   return (
-    <p className="text-black">
+    <p className="fhe-property-label">
       {name}:{" "}
-      <span className="font-mono font-semibold text-red-500">false</span>
+      <span className="fhe-property-false">false</span>
     </p>
   );
 }
