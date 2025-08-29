@@ -11,21 +11,8 @@ export function errorNotDeployed(chainId: number | undefined) {
           {chainId === 11155111 ? "(Sepolia)" : ""} or Deployment Address
           Missing.
         </p>
-        <p className="text-2xl leading-relaxed mt-8">
-          It appears that the FHECounter.sol contract has either not been
-          deployed yet, or the deployment address is missing from the ABI
-          directory{" "}
-          <span className="font-mono bg-white">root/packages/abi</span>. Run the
-          following command:
-        </p>
-        <p className="font-mono text-2xl leading-relaxed bg-black text-white p-4 mt-12">
-          npx hardhat deploy --network{" "}
-          {chainId === 11155111 ? "sepolia" : "your-network-name"}
-        </p>
-        <p className="text-2xl leading-relaxed mt-12">
-          Alternatively, switch to the local{" "}
-          <span className="font-mono bg-white">Hardhat Node</span> using the
-          MetaMask browser extension.
+        <p className="text-2xl leading-relaxed mt-8 text-center">
+          You haven't deployed the contract on the current network. Please deploy or connect and switch to Sepolia network.
         </p>
       </div>
     </div>
