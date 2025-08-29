@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 }
 
 // Handle OPTIONS request for CORS preflight
-export async function OPTIONS(req: Request) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
