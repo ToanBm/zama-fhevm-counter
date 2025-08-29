@@ -1,28 +1,33 @@
 "use client";
 
 import { useMetaMaskEthersSigner } from "../../hooks/metamask/useMetaMaskEthersSigner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export const ConnectWallet = () => {
   const {
     accounts,
     isConnected,
     connect,
-    disconnect,
     chainId,
     provider,
   } = useMetaMaskEthersSigner();
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Auto switch to Sepolia when connected
+  // Close dropdown when clicking outside
   useEffect(() => {
-    if (isConnected && provider && chainId !== 11155111) {
-      setTimeout(() => {
-        switchToSepolia();
-      }, 500);
-    }
-  }, [isConnected, provider, chainId]);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleCopyAddress = async () => {
     if (accounts?.[0]) {
@@ -35,7 +40,7 @@ export const ConnectWallet = () => {
     }
   };
 
-  const switchToSepolia = async () => {
+  const switchToSepolia = useCallback(async () => {
     if (!provider) return;
     
     try {
@@ -43,8 +48,8 @@ export const ConnectWallet = () => {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
       });
-    } catch (error: any) {
-      if (error.code === 4902) {
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error && 'code' in error && error.code === 4902) {
         // Chain not added, add it
         await provider.request({
           method: 'wallet_addEthereumChain',
@@ -62,7 +67,16 @@ export const ConnectWallet = () => {
         });
       }
     }
-  };
+  }, [provider]);
+
+  // Auto switch to Sepolia when connected
+  useEffect(() => {
+    if (isConnected && provider && chainId !== 11155111) {
+      setTimeout(() => {
+        switchToSepolia();
+      }, 500);
+    }
+  }, [isConnected, provider, chainId, switchToSepolia]);
 
   if (!isConnected) {
     return (
@@ -91,7 +105,7 @@ export const ConnectWallet = () => {
       </button>
       
       {showDropdown && (
-        <div className="connect-dropdown">
+        <div className="connect-dropdown" ref={dropdownRef}>
           <button 
             className="dropdown-item"
             onClick={handleCopyAddress}

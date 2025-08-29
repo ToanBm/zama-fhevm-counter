@@ -12,7 +12,7 @@ export function errorNotDeployed(chainId: number | undefined) {
           Missing.
         </p>
         <p className="text-2xl leading-relaxed mt-8 text-center">
-          You haven't deployed the contract on the current network. Please deploy or connect and switch to Sepolia network.
+          You haven&apos;t deployed the contract on the current network. Please deploy or connect and switch to Sepolia network.
         </p>
       </div>
     </div>
